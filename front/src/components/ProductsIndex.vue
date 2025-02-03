@@ -1,50 +1,39 @@
 <template>
-  <main
-    class="container content"
-    style="color: white; display: flex; flex-direction: column; background-color: gray">
+  <main class="container content" style="color: white; display: flex; flex-direction: column; background-color: gray">
     <div class="filter_layout">
-      <div style="width: 100%; display: flex; justify-content: space-between">
-        <button @click="filter_display" style="">
-          <img src="../assets/filter.png" style="width: 40px; height: 40px" />
+      <div style="width: 100%; display: flex; align-items: flex-end; margin-bottom: 5px">
+        <h1>Display de produtos</h1>
+        <button @click="filter_display" style="margin-left: auto;">
+          <img src="../assets/filter.png" style="width: 30px; height: 30px" />
         </button>
-        <button @click="logout" style="align-self: end">
-          <img src="../assets/exit.png" style="width: 40px; height: 40px" />
+        <button @click="logout" style="margin-left: 10px;">
+          <img src="../assets/exit.png" style="width: 30px; height: 30px" />
         </button>
       </div>
-      <div
-        style="
-          display: flex;
-          justify-content: space-between;
-          justify-content: space-between;"
-        id="filter_display">
-        <div style="">
-          Filtro por data:<br />
-          <div style="">
-            <h4>de:</h4>
-            <input />
-            <h4>para:</h4>
-            <input />
-          </div>
+      <div style="display: flex; width: 100%; align-items: flex-start; flex-wrap: wrap; gap: 20px;" id="filter_display">
+        <div style="flex: 1; margin-right: 10px;">
+          <h4>Data a partir de:</h4>
+          <input style="width: 90%; padding: 3px;" />
+          <h4>Data até:</h4>
+          <input style="width: 90%; padding: 3px;" />
         </div>
-        <div @change="name_input" style="display: flex; flex-direction: column">
+
+        <div @change="name_input" style="display: flex; flex-direction: column; flex: 1; margin-right: 10px;">
           <h4>Nome</h4>
-          <input style="flex" />
-        </div>
-        <div style="" id="sku_input" @change="sku_input">
-          SKU:
-          <br />
-          <input />
-        </div>
-        <div style="">
-          <div style="">
-            <div style="">
-              <p style="">Status:</p>
-              <select id="status" name="status">
-                <option value="active">active</option>
-                <option value="inactive">inactive</option>
-              </select>
-            </div>
+          <input style="flex: 1; width: 90%; padding: 3px;" />
+          <div style="flex: 1;" id="sku_input" @change="sku_input">
+            <h4>SKU:</h4>
+            <input style="width: 90%; padding: 3px;" />
           </div>
+        </div>
+
+
+        <div style="margin-left:20px">
+          <h4>Status:</h4>
+          <select id="status" name="status" style="width: 100px; padding:3px; border-radius:0px">
+            <option value="active">active</option>
+            <option value="inactive">inactive</option>
+          </select>
         </div>
       </div>
     </div>
@@ -59,7 +48,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="item in array_products_to_display" :key="item.value">
+        <tr v-for="item in paginator" :key="item.value">
           <td style="border: 1px solid black; padding: 5px">{{ item.name }}</td>
           <td style="border: 1px solid black; padding: 5px">{{ item.created_at }}</td>
           <td style="border: 1px solid black; padding: 5px">{{ item.sku }}</td>
@@ -71,21 +60,27 @@
         </tr>
       </tbody>
     </table>
-    <div>
-      <button @click="prevPage">Previous</button>
-      <button @click="nextPage">Next</button>
+    <div style="display: flex; justify-content: flex-end; margin: 10px; gap: 5px;">
+      <button style="padding: 10px" @click="prevPage">Previous</button>
+      <button style="padding: 10px" @click="nextPage">Next</button>
     </div>
   </main>
 </template>
 
 <style scoped>
+main {
+  font-family: 'Courier New', Courier, monospace;
+}
+
 .filter_layout {
   padding: 20px;
   background-color: black;
 }
+
 button:hover {
   cursor: pointer;
 }
+
 input {
   padding: 2px;
 }
@@ -99,14 +94,13 @@ export default {
   data() {
     return {
       array_products: [],
-      array_products_to_display: [],
       pageSize: 10,
       currentPage: 1,
+      array_products_to_display: []
     };
   },
   methods: {
-    nextPage: async function () {
-      console.log("teste")
+    nextPage() {
       if (this.currentPage * this.pageSize < this.array_products.length) this.currentPage++;
     },
     async loadpage() {
@@ -114,23 +108,14 @@ export default {
         this.array_products = await axios
           .get("https://6735fdf65995834c8a94f2fd.mockapi.io/api/v4/products")
           .then(response => {
-             return response.data;
-          })
-          // .then((response) => {
-          //   return response.data.filter((row, index) => {
-          //     let start = (this.currentPage - 1) * this.pageSize;
-          //     let end = this.currentPage * this.pageSize;
-          //     if (index >= start && index < end) return true;
-          //   });
-          // }
-        // );
-          console.log(this.array_products,"products_returned");
+            return response.data;
+          });
         this.array_products_to_display = this.array_products;
       } catch (error) {
         console.log("Error: " + error);
       }
     },
-    prevPage: async function () {
+    prevPage() {
       if (this.currentPage > 1) this.currentPage--;
     },
     filter_display() {
@@ -138,8 +123,6 @@ export default {
       filter.style.display = filter.style.display === "none" ? "flex" : "none";
     },
     sku_input(ev) {
-      console.log(ev.target.value);
-      console.log(this.array_products_to_display);
       if (ev.target.value === "") {
         this.array_products_to_display = this.array_products;
         return;
@@ -150,8 +133,6 @@ export default {
       });
     },
     name_input(ev) {
-      console.log(ev.target.value);
-      console.log(this.array_products_to_display);
       if (ev.target.value === "") {
         this.array_products_to_display = this.array_products;
         return;
@@ -171,13 +152,10 @@ export default {
   },
   computed: {
     paginator() {
-      console.log("PAGINANDO")
-      this.array_products_to_display = this.array_products.filter((row, index) => {
-        console.log(row,"ROW")
-          let start = (this.currentPage - 1) * this.pageSize;
-          let end = this.currentPage * this.pageSize;
-          if (index >= start && index < end) return true;
-      });
+      let start = (this.currentPage - 1) * this.pageSize;
+      let end = this.currentPage * this.pageSize;
+
+      return this.array_products_to_display.slice(start, end);
     }
   },
 };
